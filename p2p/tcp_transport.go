@@ -31,6 +31,7 @@ type TCPTransportOps struct {
 	ListenAddr    string
 	HandshakeFunc HandshakeFunc
 	Decoder       Decoder
+	OnPeer        func(Peer) error
 }
 
 type TCPTransport struct {
@@ -84,29 +85,35 @@ func (t *TCPTransport) startAcceptLoop() error {
 type Temp struct{}
 
 func (t *TCPTransport) handleConn(conn net.Conn) {
+	var err error
+
+	defer func() {
+		fmt.Printf("dropping peer connection: %s", err)
+		conn.Close()
+	}()
+
 	peer := NewTCPPeer(conn, true)
 
 	if err := t.HandshakeFunc(peer); err != nil {
-		conn.Close()
-		fmt.Printf("TCP handshake error: %s\n", err)
 		return
+	}
+
+	if t.OnPeer != nil {
+		if err = t.OnPeer(peer); err != nil {
+			return
+		}
 	}
 
 	// Read loop
 	rpc := RPC{}
-	// buf := make([]byte, 2000)
 	for {
-		// n, err := conn.Read(buf)
-		// if err != nil {
-		// 	fmt.Printf("TCP error: %s\n", err)
-		// }
-		if err := t.Decoder.Decode(conn, &rpc); err != nil {
-			fmt.Printf("TCP error: %s\n", err)
+		err := t.Decoder.Decode(conn, &rpc)
+
+		if err != nil {
 			continue
 		}
 
 		rpc.From = conn.RemoteAddr()
-
 		t.rpcch <- rpc
 	}
 }

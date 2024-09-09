@@ -7,11 +7,18 @@ import (
 	"github.com/evgeny-s/go-distributed-storage/p2p"
 )
 
+func OnPeer(peer p2p.Peer) error {
+	peer.Close()
+	// fmt.Println("doing some logic with the peer outside of TCPTransport")
+	return nil
+}
+
 func main() {
 	tcpOpts := p2p.TCPTransportOps{
 		ListenAddr:    ":3001",
 		Decoder:       p2p.DefaultDecoder{},
 		HandshakeFunc: p2p.NOPHandshakeFunc,
+		OnPeer:        OnPeer,
 	}
 	tr := p2p.NewTCPTransport(tcpOpts)
 

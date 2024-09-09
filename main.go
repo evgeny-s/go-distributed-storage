@@ -1,8 +1,8 @@
 package main
 
 import (
-	"fmt"
 	"log"
+	"time"
 
 	"github.com/evgeny-s/go-distributed-storage/p2p"
 )
@@ -14,24 +14,28 @@ func OnPeer(peer p2p.Peer) error {
 }
 
 func main() {
-	tcpOpts := p2p.TCPTransportOps{
+	tcpTransportOpts := p2p.TCPTransportOps{
 		ListenAddr:    ":3001",
-		Decoder:       p2p.DefaultDecoder{},
 		HandshakeFunc: p2p.NOPHandshakeFunc,
-		OnPeer:        OnPeer,
+		Decoder:       p2p.DefaultDecoder{},
 	}
-	tr := p2p.NewTCPTransport(tcpOpts)
+	tcpTransport := p2p.NewTCPTransport(tcpTransportOpts)
+
+	fileServerOpts := FileServerOpts{
+
+		StorageRoot:       "3001_network",
+		PathTransformFunc: CASPathTransformFunc,
+		Transport:         tcpTransport,
+	}
+
+	s := NewFileServer(fileServerOpts)
 
 	go func() {
-		for {
-			msg := <-tr.Consume()
-			fmt.Printf("%+v\n", msg)
-		}
+		time.Sleep(time.Second * 3)
+		s.Stop()
 	}()
 
-	if err := tr.ListenAndAccept(); err != nil {
+	if err := s.Start(); err != nil {
 		log.Fatal(err)
 	}
-
-	select {}
 }

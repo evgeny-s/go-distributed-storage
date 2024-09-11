@@ -245,7 +245,7 @@ func (s *FileServer) handleMessageStoreFile(from string, msg MessageStoreFile) e
 
 	fmt.Printf("[%s] written %d bytes to disk \n", s.Transport.Addr(), n)
 
-	peer.(*p2p.TCPPeer).Wg.Done()
+	peer.(*p2p.TCPPeer).CloseStream()
 
 	return nil
 }

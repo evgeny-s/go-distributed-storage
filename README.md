@@ -1,4 +1,4 @@
-# The simple implmentation of distributed storage
+# The simple implementation of distributed storage
 
 ### Quick run:
 ```

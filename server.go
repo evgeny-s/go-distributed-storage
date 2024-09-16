@@ -267,7 +267,7 @@ func (s *FileServer) bootstrapNetwork() error {
 		}
 
 		go func(addr string) {
-			fmt.Println("[%s] attempting to connect with remote: \n", s.Transport.Addr(), addr)
+			fmt.Printf("[%s] attempting to connect with remote: \n", s.Transport.Addr())
 			if err := s.Transport.Dial(addr); err != nil {
 				log.Println("dial error: ", err)
 			}
